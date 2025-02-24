@@ -221,11 +221,5 @@ contract Lottery is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
     }
 }
 
-// OP SEPOLIA
-// vrfCoordinator address: 0x02667f44a6a44E4BDddCF80e724512Ad3426B17d
-// 30 gwei key hash: 0xc3d5bc4d5600fa71f7a50b9ad841f14f24f9ca4236fd00bdb5fda56b052b28a4
-
-// subscription id: 97551069090539325347393782162245589254286631676974545031461153566326123219451
-
 // Registry Address: 0x881918E24290084409DaA91979A30e6f0dB52eBe
 // Registrar Address: 0x110Bd89F0B62EA1598FfeBF8C0304c9e58510Ee5
