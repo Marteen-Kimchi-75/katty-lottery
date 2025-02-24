@@ -16,7 +16,7 @@ abstract contract CodeConstants {
     uint256 constant SEPOLIA_OP_CHAIN_ID = 11155420;
 
     uint256 constant ENTRY_FEE = 0.0001 ether;
-    uint256 constant INTERVAL = 30;
+    uint256 constant INTERVAL = 60;
 
     address constant ACCOUNT = 0x87b28500E8CBaa9a7576370944ea956513B5Cf8D;
 }
@@ -98,7 +98,7 @@ contract HelperConfig is Script, CodeConstants {
         vm.stopBroadcast();
 
         localNetworkConfig = NetworkConfig({
-            entryFee: 1 ether,
+            entryFee: 0.01 ether,
             interval: 30,
             vrfCoordinator: address(vrfCoordinatorMock),
             gasLane: 0xc3d5bc4d5600fa71f7a50b9ad841f14f24f9ca4236fd00bdb5fda56b052b28a4, // doesn't matter

@@ -6,7 +6,7 @@ import {Lottery} from "../src/Lottery.sol";
 import {HelperConfig} from "./HelperConfig.s.sol";
 import {CreateSubscription, FundSubscription, AddConsumer} from "./Interactions.s.sol";
 
-contract DepolyLottery is Script {
+contract DeployLottery is Script {
     uint16 public constant REQUEST_CONFIMATIONS = 5;
     bool public constant NATIVE_PAYMENT = false;
 

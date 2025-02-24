@@ -6,6 +6,12 @@ import {VRFV2PlusClient} from "@chainlink/vrf/dev/libraries/VRFV2PlusClient.sol"
 import {AutomationCompatibleInterface} from "@chainlink/automation/AutomationCompatible.sol";
 
 
+/**
+ * @title A sample lottery contract
+ * @author Kimchii
+ * @notice This contract is for creating a simple lottery
+ * @dev Implements Chainlink VRFv2.5
+ */
 contract Lottery is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
     /////////////////////////////
     ///   TYPE DECLARATIONS   ///
@@ -75,7 +81,15 @@ contract Lottery is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
         s_callbackGasLimit = _callbackGasLimit;
     }
 
-    function enterLottery(string calldata _nameOfPlayer) public payable {
+    receive() external payable {
+        enterLottery("anonymous");
+    }
+
+    fallback() external payable {
+        enterLottery("anonymous");
+    }
+
+    function enterLottery(string memory _nameOfPlayer) public payable {
         if (msg.value != s_entryFee) {
             revert Lottery__NotEnoughEth(msg.value);
         }
@@ -94,6 +108,7 @@ contract Lottery is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
         string memory winnerName = s_playersToName[winner];
 
         s_lastWinner = winner;
+        s_lastWinnerName = winnerName;
         s_lotteryState = LotteryState.OPEN;
         s_players = new address payable[](0); // resetting the array
         s_lastTimestamp = block.timestamp;
@@ -162,7 +177,10 @@ contract Lottery is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
     }
     
     function timeTillNextRound() public view returns (uint256) {
-        return (block.timestamp - s_lastTimestamp) - s_interval;
+        if (block.timestamp < s_lastTimestamp + s_interval) {
+            return (s_lastTimestamp + s_interval) - block.timestamp;
+        }
+        return 0;
     }
 
     function players(uint256 indexOfPlayer) public view returns (address) {
@@ -171,6 +189,10 @@ contract Lottery is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
 
     function playerName(address playerAddress) public view returns (string memory) {
         return s_playersToName[playerAddress];
+    }
+
+    function lotteryInterval() public view returns (uint256) {
+        return s_interval;
     }
 
     /////////////////////////////
@@ -220,6 +242,3 @@ contract Lottery is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
         s_callbackGasLimit = _callbackGasLimit;
     }
 }
-
-// Registry Address: 0x881918E24290084409DaA91979A30e6f0dB52eBe
-// Registrar Address: 0x110Bd89F0B62EA1598FfeBF8C0304c9e58510Ee5
