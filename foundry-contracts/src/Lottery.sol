@@ -47,6 +47,7 @@ contract Lottery is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
     event EnteredLottery(address indexed player, string indexed playerName);
     event WinnerPicked(address indexed winner, string indexed winnerName);
     event RequestedLotteryWinner(uint256 indexed requestId);
+    event LotteryStateChanged(LotteryState newState);
 
     /////////////////////////////
     ///        ERRORS         ///
@@ -54,6 +55,7 @@ contract Lottery is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
     error Lottery__NotEnoughEth(uint256 value);
     error Lottery__LotteryNotOpen();
     error Lottery__UpkeepNotNeeded(uint256 _contractBalance, uint256 _noOfPlayers, uint256 _lotteryState);
+    error Lottery__TransferFailed();
 
     /////////////////////////////
     ///       FUNCTIONS       ///
@@ -114,6 +116,12 @@ contract Lottery is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
         s_lastTimestamp = block.timestamp;
 
         emit WinnerPicked(s_lastWinner, winnerName);
+        emit LotteryStateChanged(s_lotteryState);
+
+        (bool success,) = winner.call{value: address(this).balance}("");
+        if (!success) {
+            revert Lottery__TransferFailed();
+        }
     }
 
     function performUpkeep(bytes calldata /* performData */) external {
@@ -124,6 +132,7 @@ contract Lottery is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
         }
 
         s_lotteryState = LotteryState.CALCULATING;
+        emit LotteryStateChanged(s_lotteryState);
 
         VRFV2PlusClient.RandomWordsRequest memory request = VRFV2PlusClient.RandomWordsRequest({
                 keyHash: s_keyHash,
@@ -208,10 +217,12 @@ contract Lottery is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
 
     function closeLottery() external onlyOwner {
         s_lotteryState = LotteryState.CLOSED;
+        emit LotteryStateChanged(s_lotteryState);
     }
 
     function openLottery() external onlyOwner {
         s_lotteryState = LotteryState.OPEN;
+        emit LotteryStateChanged(s_lotteryState);
     }
 
     function changeEntryFee(uint256 _newEntryFee) external onlyOwner {
@@ -240,5 +251,13 @@ contract Lottery is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
 
     function changeCallbackGasLimit(uint32 _callbackGasLimit) external onlyOwner {
         s_callbackGasLimit = _callbackGasLimit;
+    }
+
+    // In case funds get stuck
+    function withdrawFunds() external onlyOwner {
+        (bool success,) = owner().call{value: address(this).balance}("");
+        if(!success) {
+            revert Lottery__TransferFailed();
+        }
     }
 }
